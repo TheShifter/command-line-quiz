@@ -1,14 +1,1 @@
-[
-  {
-    "name": "Alex",
-    "сorrectAnswers": 9
-  },
-  {
-    "name": "Dasha",
-    "сorrectAnswers": 6
-  },
-  {
-    "name": "Anatol",
-    "сorrectAnswers": 10
-  }
-]
+[{"name":"Alex","CorrectAnswers":10},{"name":"Dasha","CorrectAnswers":8},{"name":"Anatol","CorrectAnswers":12},{"name":"Oleg","CorrectAnswers":17}]
