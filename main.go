@@ -3,6 +3,8 @@ package main
 import (
 	. "command-line-quiz/gameUtil"
 	"fmt"
+	"github.com/TheShifter/command-line-quiz/gameUtil"
+	_ "github.com/TheShifter/command-line-quiz/gameUtil"
 	"os"
 )
 
@@ -18,10 +20,11 @@ func main() {
 	}
 	switch choise {
 	case 1:
-		Start()
+		gameUtil.s
+		tart()
 	case 2:
-		rating := GetRating()
-		fmt.Println(GetTopFive(rating))
+		rating := gameUtil.GetRating()
+		fmt.Println(gameUtil.GetTopFive(rating))
 	case 3:
 		os.Exit(3)
 	default:

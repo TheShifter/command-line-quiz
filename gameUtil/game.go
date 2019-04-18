@@ -4,6 +4,7 @@ import (
 	. "command-line-quiz/essence"
 	"encoding/json"
 	"fmt"
+	"github.com/TheShifter/command-line-quiz/essence"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -26,36 +27,36 @@ func getQuestion() (questions []Task) {
 	return
 }
 
-func calculateQuestion(countCorrectAnsw *int, countIncorectAnsv *int) {
+func calculateQuestion(countCorrect *int, countIncorect *int) {
 	var userAnswer string
 	questions := getQuestion()
 	for _, Task := range questions {
 		fmt.Println(Task.Question)
 		fmt.Fscan(os.Stdin, &userAnswer)
 		if Task.Answer == userAnswer {
-			*countCorrectAnsw++
+			*countCorrect++
 		} else {
-			*countIncorectAnsv++
+			*countIncorect++
 		}
 	}
 }
 
-func Start() {
-	var countCorrectAnsw int
-	var countIncorectAnsv int
+func start() {
+	var countCorrect int
+	var countIncorect int
 	var name string
-	go calculateQuestion(&countCorrectAnsw, &countIncorectAnsv)
+	go calculateQuestion(&countCorrect, &countIncorect)
 	time.Sleep(time.Minute)
-	if TopFive(countCorrectAnsw) {
+	if topFive(countCorrect) {
 		fmt.Println("Enter your name: ")
 		fmt.Fscan(os.Stdin, &name)
-		addToRating(name, countCorrectAnsw)
+		addToRating(name, countCorrect)
 	}
 	fmt.Printf("Final result:\n"+
-		"count of correct answers = %d\n"+"count of incorrect answers = %d", countCorrectAnsw, countIncorectAnsv)
+		"count of correct answers = %d\n"+"count of incorrect answers = %d", countCorrect, countIncorect)
 }
 
-func GetRating() (ratings []Rating) {
+func getRating() (ratings []Rating) {
 	jsonfile, err := os.Open(ratingFile)
 	defer jsonfile.Close()
 	if err != nil {
@@ -66,9 +67,9 @@ func GetRating() (ratings []Rating) {
 	return
 }
 
-func GetTopFive(ratings []Rating) (topFive []Rating) {
+func getTopFive(ratings []Rating) (topFive []Rating) {
 	sort.Slice(ratings, func(i, j int) bool {
-		return ratings[i].CorrectAnswers > ratings[j].CorrectAnswers
+		return ratings[i].Correct > ratings[j].Correct
 	})
 	if len(ratings) >= 5 {
 		topFive = ratings[0:5]
@@ -78,11 +79,11 @@ func GetTopFive(ratings []Rating) (topFive []Rating) {
 	}
 }
 
-func TopFive(countUserCorrectAnswers int) bool {
-	rating := GetRating()
-	topfive := GetTopFive(rating)
+func topFive(countUserCorrectAnswers int) bool {
+	rating := getRating()
+	topfive := getTopFive(rating)
 	for _, rating := range topfive {
-		if countUserCorrectAnswers >= rating.CorrectAnswers {
+		if countUserCorrectAnswers >= rating.Correct {
 			return true
 		}
 	}
@@ -90,8 +91,8 @@ func TopFive(countUserCorrectAnswers int) bool {
 }
 
 func addToRating(name string, countCorrectAnsw int) {
-	initailRating := GetRating()
-	initailRating = append(initailRating, Rating{Name: name, CorrectAnswers: countCorrectAnsw})
+	initailRating := getRating()
+	initailRating = append(initailRating, Rating{Name: name, Correct: countCorrectAnsw})
 	result, err := json.Marshal(initailRating)
 	if err != nil {
 		panic(err)
