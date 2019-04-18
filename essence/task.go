@@ -1,4 +1,4 @@
-package models
+package essence
 
 // Структура для json с вопросами и ответами
 type Task struct {

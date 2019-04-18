@@ -1,11 +1,12 @@
-package gameUtil
+package g
 
 import (
-	. "command-line-quiz/essence"
+	"command-line-quiz/essence"
 	"encoding/json"
 	"fmt"
-	"github.com/TheShifter/command-line-quiz/essence"
 	"io/ioutil"
+	"log"
+	"math/rand"
 	"os"
 	"sort"
 	"time"
@@ -16,20 +17,24 @@ const (
 	ratingFile = "json/rating.json"
 )
 
-func getQuestion() (questions []Task) {
+func getQuestion() (questions []essence.Task) {
 	jsonFile, err := os.Open(taskFile)
 	defer jsonFile.Close()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	jsonVal, _ := ioutil.ReadAll(jsonFile)
-	_ = json.Unmarshal(jsonVal, &questions)
+	err = json.Unmarshal(jsonVal, &questions)
+	if err != nil{
+		log.Fatal(err)
+	}
 	return
 }
 
 func calculateQuestion(countCorrect *int, countIncorect *int) {
 	var userAnswer string
 	questions := getQuestion()
+	shuffle(questions)
 	for _, Task := range questions {
 		fmt.Println(Task.Question)
 		fmt.Fscan(os.Stdin, &userAnswer)
@@ -41,33 +46,36 @@ func calculateQuestion(countCorrect *int, countIncorect *int) {
 	}
 }
 
-func start() {
-	var countCorrect int
-	var countIncorect int
+func Start() {
+	var correct int
+	var incorect int
 	var name string
-	go calculateQuestion(&countCorrect, &countIncorect)
-	time.Sleep(time.Minute)
-	if topFive(countCorrect) {
+	timer := time.NewTimer(time.Minute)
+	go func() {
+		<-timer.C
+		go calculateQuestion(&correct, &incorect)
+	}()
+	if topFive(correct) {
 		fmt.Println("Enter your name: ")
 		fmt.Fscan(os.Stdin, &name)
-		addToRating(name, countCorrect)
+		addToRating(name, correct)
 	}
 	fmt.Printf("Final result:\n"+
-		"count of correct answers = %d\n"+"count of incorrect answers = %d", countCorrect, countIncorect)
+		"count of correct answers = %d\n"+"count of incorrect answers = %d", correct, incorect)
 }
 
-func getRating() (ratings []Rating) {
+func GetRating() (ratings []essence.Rating) {
 	jsonfile, err := os.Open(ratingFile)
 	defer jsonfile.Close()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	jsonVal, _ := ioutil.ReadAll(jsonfile)
 	_ = json.Unmarshal(jsonVal, &ratings)
 	return
 }
 
-func getTopFive(ratings []Rating) (topFive []Rating) {
+func GetTopFive(ratings []essence.Rating) (topFive []essence.Rating) {
 	sort.Slice(ratings, func(i, j int) bool {
 		return ratings[i].Correct > ratings[j].Correct
 	})
@@ -80,8 +88,8 @@ func getTopFive(ratings []Rating) (topFive []Rating) {
 }
 
 func topFive(countUserCorrectAnswers int) bool {
-	rating := getRating()
-	topfive := getTopFive(rating)
+	rating := GetRating()
+	topfive := GetTopFive(rating)
 	for _, rating := range topfive {
 		if countUserCorrectAnswers >= rating.Correct {
 			return true
@@ -91,14 +99,20 @@ func topFive(countUserCorrectAnswers int) bool {
 }
 
 func addToRating(name string, countCorrectAnsw int) {
-	initailRating := getRating()
-	initailRating = append(initailRating, Rating{Name: name, Correct: countCorrectAnsw})
+	initailRating := GetRating()
+	initailRating = append(initailRating, essence.Rating{Name: name, Correct: countCorrectAnsw})
 	result, err := json.Marshal(initailRating)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	file, err := os.Create(ratingFile)
 	file.WriteString(string(result))
 	defer file.Close()
 	fmt.Println("You was added to top!!!")
+}
+
+func shuffle(questions []essence.Task)  {
+	rand.Shuffle(len(questions), func(i, j int) {
+		questions[i], questions[j] = questions[j], questions[i]
+	})
 }

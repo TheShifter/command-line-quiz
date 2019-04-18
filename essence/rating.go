@@ -1,7 +1,7 @@
-package models
+package essence
 
 //Структура для json с рейтингом игроков
 type Rating struct {
 	Name    string `json:"name"`
-	Correct int    `json:"correctAnswers`
+	CorrectAnswers int    `json:"correctAnswers`
 }
