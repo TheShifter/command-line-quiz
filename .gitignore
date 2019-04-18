@@ -1,5 +1,6 @@
 # IntellijIdea files
 *.iml
+*.xml
 .idea
 .idea/
 out
