@@ -1,7 +1,7 @@
-package g
+package gameUtil
 
 import (
-	"command-line-quiz/essence"
+	"command-line-quiz/entity"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -17,21 +17,21 @@ const (
 	ratingFile = "json/rating.json"
 )
 
-func getQuestion() (questions []essence.Task) {
+func getQuestion() (tasks []entity.Task) {
 	jsonFile, err := os.Open(taskFile)
 	defer jsonFile.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
 	jsonVal, _ := ioutil.ReadAll(jsonFile)
-	err = json.Unmarshal(jsonVal, &questions)
+	err = json.Unmarshal(jsonVal, &tasks)
 	if err != nil{
 		log.Fatal(err)
 	}
 	return
 }
 
-func calculateQuestion(countCorrect *int, countIncorect *int) {
+func calculateQuestion(countCorrect int, countIncorect int) {
 	var userAnswer string
 	questions := getQuestion()
 	shuffle(questions)
@@ -55,6 +55,7 @@ func Start() {
 		<-timer.C
 		go calculateQuestion(&correct, &incorect)
 	}()
+
 	if topFive(correct) {
 		fmt.Println("Enter your name: ")
 		fmt.Fscan(os.Stdin, &name)
@@ -64,7 +65,7 @@ func Start() {
 		"count of correct answers = %d\n"+"count of incorrect answers = %d", correct, incorect)
 }
 
-func GetRating() (ratings []essence.Rating) {
+func GetRating() (ratings []entity.Rating) {
 	jsonfile, err := os.Open(ratingFile)
 	defer jsonfile.Close()
 	if err != nil {
@@ -75,7 +76,7 @@ func GetRating() (ratings []essence.Rating) {
 	return
 }
 
-func GetTopFive(ratings []essence.Rating) (topFive []essence.Rating) {
+func GetTopFive(ratings []entity.Rating) (topFive []entity.Rating) {
 	sort.Slice(ratings, func(i, j int) bool {
 		return ratings[i].Correct > ratings[j].Correct
 	})
@@ -100,7 +101,7 @@ func topFive(countUserCorrectAnswers int) bool {
 
 func addToRating(name string, countCorrectAnsw int) {
 	initailRating := GetRating()
-	initailRating = append(initailRating, essence.Rating{Name: name, Correct: countCorrectAnsw})
+	initailRating = append(initailRating, entity.Rating{Name: name, Correct: countCorrectAnsw})
 	result, err := json.Marshal(initailRating)
 	if err != nil {
 		log.Fatal(err)
@@ -111,8 +112,8 @@ func addToRating(name string, countCorrectAnsw int) {
 	fmt.Println("You was added to top!!!")
 }
 
-func shuffle(questions []essence.Task)  {
-	rand.Shuffle(len(questions), func(i, j int) {
-		questions[i], questions[j] = questions[j], questions[i]
+func shuffle(tasks []entity.Task)  {
+	rand.Shuffle(len(tasks), func(i, j int) {
+		tasks[i], tasks[j] = tasks[j], tasks[i]
 	})
 }

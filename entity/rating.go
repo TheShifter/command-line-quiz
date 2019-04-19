@@ -1,4 +1,4 @@
-package essence
+package entity
 
 //Структура для json с рейтингом игроков
 type Rating struct {
