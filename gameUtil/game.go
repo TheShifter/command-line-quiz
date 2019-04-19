@@ -1,7 +1,7 @@
 package gameUtil
 
 import (
-	"command-line-quiz/entity"
+	"github.com/TheShifter/command-line-quiz/entity"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
