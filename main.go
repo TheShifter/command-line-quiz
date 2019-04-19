@@ -1,8 +1,9 @@
 package main
 
 import (
-	. "command-line-quiz/gameUtil"
+	"errors"
 	"fmt"
+	"github.com/TheShifter/command-line-quiz/gameUtil"
 	"os"
 )
 
@@ -14,17 +15,22 @@ func main() {
 	var choise int
 	_, err := fmt.Fscan(os.Stdin, &choise)
 	if err != nil {
-		panic(err)
+		errors.New("nothing entered" + err.Error())
 	}
 	switch choise {
 	case 1:
-		Start()
+		gameUtil.Start()
 	case 2:
-		rating := getRating()
-		fmt.Println(getTopFive(rating))
+		rating := gameUtil.GetRating()
+		fmt.Println(gameUtil.GetTopFive(rating))
 	case 3:
-		os.Exit(3)
+		exit()
 	default:
 		fmt.Println("Invalid choice")
 	}
+}
+
+func exit(){
+	fmt.Println("You are out of the game ")
+	os.Exit(0)
 }

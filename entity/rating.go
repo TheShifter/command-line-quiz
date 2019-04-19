@@ -1,7 +1,7 @@
-package models
+package entity
 
-//Структура для json с рейтингом игроков
+//This is struct for json with users rating
 type Rating struct {
-	Name           string `json:"name"`
-	CorrectAnswers int    `json:"correctAnswers`
+	Name    string `json:"name"`
+	Correct int    `json:"correctAnswers`
 }

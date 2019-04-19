@@ -1,6 +1,6 @@
-package models
+package entity
 
-// Структура для json с вопросами и ответами
+//This is struct for json with question and answers
 type Task struct {
 	Question string `json:"question"`
 	Answer   string `json:"answer"`

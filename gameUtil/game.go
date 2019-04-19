@@ -1,10 +1,12 @@
 package gameUtil
 
 import (
-	. "command-line-quiz/entity"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/TheShifter/command-line-quiz/entity"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"sort"
 	"time"
@@ -15,60 +17,78 @@ const (
 	ratingFile = "json/rating.json"
 )
 
-func getQuestion() (questions []Task) {
+func getQuestion() (tasks []entity.Task) {
 	jsonFile, err := os.Open(taskFile)
 	defer jsonFile.Close()
 	if err != nil {
-		panic(err)
+		errors.New("File not found" + err.Error())
 	}
 	jsonVal, _ := ioutil.ReadAll(jsonFile)
-	_ = json.Unmarshal(jsonVal, &questions)
+	err = json.Unmarshal(jsonVal, &tasks)
+	if err != nil{
+		errors.New("Unmarshal failed" + err.Error())
+	}
 	return
 }
 
-func calculateQuestion(countCorrectAnsw *int, countIncorectAnsv *int) {
+func calculate(correct, incorect *int){
 	var userAnswer string
+	timer := time.NewTimer(time.Minute)
 	questions := getQuestion()
-	for _, Task := range questions {
+	shuffle(questions)
+	questionLoop:
+	for _, Task := range questions{
 		fmt.Println(Task.Question)
-		fmt.Fscan(os.Stdin, &userAnswer)
-		if Task.Answer == userAnswer {
-			*countCorrectAnsw++
-		} else {
-			*countIncorectAnsv++
+		answerCh := make(chan string)
+		go func(){
+			fmt.Fscan(os.Stdin, &userAnswer)
+			answerCh <- userAnswer
+		}()
+		select {
+		case <- timer.C:
+			fmt.Println("time is over")
+			break questionLoop
+			case userAnswer := <- answerCh:
+				if Task.Answer == userAnswer{
+					*correct++
+				}else{
+					*incorect++
+				}
 		}
 	}
 }
 
 func Start() {
-	var countCorrectAnsw int
-	var countIncorectAnsv int
+	var correct int
+	var incorect int
 	var name string
-	go calculateQuestion(&countCorrectAnsw, &countIncorectAnsv)
-	time.Sleep(time.Minute)
-	if TopFive(countCorrectAnsw) {
+	calculate(&correct, &incorect)
+	if topFive(correct) {
 		fmt.Println("Enter your name: ")
 		fmt.Fscan(os.Stdin, &name)
-		addToRating(name, countCorrectAnsw)
+		addToRating(name, correct)
 	}
-	fmt.Printf("Final result:\n"+
-		"count of correct answers = %d\n"+"count of incorrect answers = %d", countCorrectAnsw, countIncorectAnsv)
+	fmt.Printf("Final result:\n"+"count of correct answers = %d\n"+"count of incorrect answers = %d", correct, incorect)
+
 }
 
-func GetRating() (ratings []Rating) {
+func GetRating() (ratings []entity.Rating) {
 	jsonfile, err := os.Open(ratingFile)
 	defer jsonfile.Close()
 	if err != nil {
-		panic(err)
+		errors.New("File not found" + err.Error())
 	}
 	jsonVal, _ := ioutil.ReadAll(jsonfile)
-	_ = json.Unmarshal(jsonVal, &ratings)
+	err = json.Unmarshal(jsonVal, &ratings)
+	if err != nil{
+		errors.New("Unmarshal failed" + err.Error())
+	}
 	return
 }
 
-func GetTopFive(ratings []Rating) (topFive []Rating) {
+func GetTopFive(ratings []entity.Rating) (topFive []entity.Rating) {
 	sort.Slice(ratings, func(i, j int) bool {
-		return ratings[i].CorrectAnswers > ratings[j].CorrectAnswers
+		return ratings[i].Correct > ratings[j].Correct
 	})
 	if len(ratings) >= 5 {
 		topFive = ratings[0:5]
@@ -78,26 +98,32 @@ func GetTopFive(ratings []Rating) (topFive []Rating) {
 	}
 }
 
-func TopFive(countUserCorrectAnswers int) bool {
+func topFive(countUserCorrectAnswers int) bool {
 	rating := GetRating()
 	topfive := GetTopFive(rating)
 	for _, rating := range topfive {
-		if countUserCorrectAnswers >= rating.CorrectAnswers {
+		if countUserCorrectAnswers >= rating.Correct {
 			return true
 		}
 	}
 	return false
 }
 
-func addToRating(name string, countCorrectAnsw int) {
+func addToRating(name string, correct int) {
 	initailRating := GetRating()
-	initailRating = append(initailRating, Rating{Name: name, CorrectAnswers: countCorrectAnsw})
+	initailRating = append(initailRating, entity.Rating{Name: name, Correct: correct})
 	result, err := json.Marshal(initailRating)
 	if err != nil {
-		panic(err)
+		errors.New("Marshal was failed" + err.Error())
 	}
 	file, err := os.Create(ratingFile)
 	file.WriteString(string(result))
 	defer file.Close()
 	fmt.Println("You was added to top!!!")
+}
+
+func shuffle(tasks []entity.Task)  {
+	rand.Shuffle(len(tasks), func(i, j int) {
+		tasks[i], tasks[j] = tasks[j], tasks[i]
+	})
 }
