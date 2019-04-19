@@ -1,7 +1,7 @@
 package gameUtil
 
 import (
-	. "command-line-quiz/essence"
+	. "command-line-quiz/entity"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"

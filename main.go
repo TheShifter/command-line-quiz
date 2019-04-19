@@ -20,8 +20,8 @@ func main() {
 	case 1:
 		Start()
 	case 2:
-		rating := GetRating()
-		fmt.Println(GetTopFive(rating))
+		rating := getRating()
+		fmt.Println(getTopFive(rating))
 	case 3:
 		os.Exit(3)
 	default:
