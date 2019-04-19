@@ -31,7 +31,9 @@ func getQuestion() (tasks []entity.Task) {
 	return
 }
 
-func calculate(correct, incorect *int){
+func calculate() (int, int){
+	var correct int
+	var incorect int
 	var userAnswer string
 	timer := time.NewTimer(time.Minute)
 	questions := getQuestion()
@@ -50,19 +52,18 @@ func calculate(correct, incorect *int){
 			break questionLoop
 			case userAnswer := <- answerCh:
 				if Task.Answer == userAnswer{
-					*correct++
+					correct++
 				}else{
-					*incorect++
+					incorect++
 				}
 		}
 	}
+	return correct, incorect
 }
 
 func Start() {
-	var correct int
-	var incorect int
 	var name string
-	calculate(&correct, &incorect)
+	correct, incorect := calculate()
 	if topFive(correct) {
 		fmt.Println("Enter your name: ")
 		fmt.Fscan(os.Stdin, &name)
@@ -122,8 +123,10 @@ func addToRating(name string, correct int) {
 	fmt.Println("You was added to top!!!")
 }
 
-func shuffle(tasks []entity.Task)  {
-	rand.Shuffle(len(tasks), func(i, j int) {
-		tasks[i], tasks[j] = tasks[j], tasks[i]
-	})
+func shuffle(tasks []entity.Task){
+	r := rand.New((rand.NewSource(time.Now().Unix())))
+	for n := len(tasks); n>0; n--{
+		randIndex := r.Intn(n)
+		tasks[n-1], tasks[randIndex] = tasks[randIndex], tasks[n-1]
+	}
 }
